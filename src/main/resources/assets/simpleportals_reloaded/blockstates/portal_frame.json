@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "": { "model": "simpleportals_reloaded:block/portal_frame" }
+    }
+}

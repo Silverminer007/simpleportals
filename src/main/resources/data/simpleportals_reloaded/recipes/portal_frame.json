@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OLO",
+    "LPL",
+    "OLO"
+  ],
+  "key": {
+    "L": {
+      "tag": "forge:gems/lapis"
+    },
+    "O": {
+      "tag": "forge:obsidian"
+    },
+    "P": {
+      "tag": "forge:ender_pearls"
+    }
+  },
+  "result": {
+    "item": "simpleportals:portal_frame",
+    "count": 4
+  }
+}
