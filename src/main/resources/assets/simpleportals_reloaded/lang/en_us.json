@@ -30,8 +30,6 @@
 	"commands.sportals.power.remove.success": "Removed '§b%d§r' power from the portal at '§bx=%d, y=%d, z=%d§r' in dimension '§b%s§r'.",
 	"commands.sportals.power.get.success": "The portal at '§bx=%d, y=%d, z=%d§r' in dimension '§b%s§r' has '§b%d§r' energy stored.",
 	"commands.sportals.power.items.success": "Valid items to power portals are ('§b%d§r' total):",
-	"commands.sportals.cooldown.info": "Queries the teleportation cooldown of a player. Portals can only be used once the cooldown reaches 0.",
-	"commands.sportals.cooldown.success": "Cooldown for player '§b%s§r' is currently '§b%d§r' ticks (~§b%.2f§r sec).",
 	"commands.errors.block_argument": "Invalid block '%s'.",
 	"commands.errors.missing_dimension": "Dimension '§c%d§r' appears to be missing. Removing registry entries only.",
 	"commands.errors.unknown_sender": "The command sender was not a player.",
@@ -69,11 +67,16 @@
 	"config.ambient_sound_enabled.tooltip": "If enabled, portals emit an ambient sound.",
 	"config.teleportation_sound_enabled": "Enable Teleportation Sound",
 	"config.teleportation_sound_enabled.tooltip": "If enabled, a sound effect is played to the player after a successful teleportation.",
+	"config.perm_level": "Required Activation level",
+	"config.perm_level.tooltip": "The Permission, that's required to activate a portal",
 
 	"_comment": "TheOneProbe Tooltip Texts",
 	"interop.top.power_capacity": "§7Power:§r",
 	"interop.top.power_sources": "§7Power sources:§r",
 	"interop.top.invalid_power_source": "§7No valid items found. Check your config.§r",
 	"interop.top.address": "§7Address:§r",
-	"interop.top.redstone_power": "§7Strength:§r"
+	"interop.top.redstone_power": "§7Strength:§r",
+
+	"_comment": "Information",
+	"info.simpleportals_reloaded.no_permission": "Sorry, but you miss the required permission to change this portal"
 }

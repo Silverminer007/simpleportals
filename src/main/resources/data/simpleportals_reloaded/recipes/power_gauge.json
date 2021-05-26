@@ -10,11 +10,11 @@
       "tag": "forge:dusts/redstone"
     },
     "F": {
-      "item": "simpleportals:portal_frame"
+      "item": "simpleportals_reloaded:portal_frame"
     }
   },
   "result": {
-    "item": "simpleportals:power_gauge",
+    "item": "simpleportals_reloaded:power_gauge",
     "count": 1
   }
 }

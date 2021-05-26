@@ -13,8 +13,8 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
 version = "${minecraft_version}-${mod_version}"
-group = 'net.zarathul.simpleportals_reloaded' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'simpleportals'
+group = 'com.silverminer.simpleportals_reloaded' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = 'SimplePortals-Reloaded'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 

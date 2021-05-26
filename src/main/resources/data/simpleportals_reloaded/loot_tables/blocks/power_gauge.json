@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "simpleportals:power_gauge"
+          "name": "simpleportals_reloaded:power_gauge"
         }
       ],
       "conditions": [

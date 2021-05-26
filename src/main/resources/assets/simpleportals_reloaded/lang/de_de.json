@@ -30,8 +30,6 @@
 	"commands.sportals.power.remove.success": "'§b%d§r' Energie wurde dem Portal bei '§bx=%d, y=%d, z=%d§r' in Dimension '§b%s§r' entzogen.",
 	"commands.sportals.power.get.success": "Das Portal bei '§bx=%d, y=%d, z=%d§r' in Dimension '§b%s§r' hat '§b%d§r' Energie gespeichert.",
 	"commands.sportals.power.items.success": "Zulässige Gegenstände zum Aufladen von Portalen sind ('§b%d§r' insgesamt):",
-	"commands.sportals.cooldown.info": "Fragt die Abklingzeit eines Spielers ab. Portale können nur benutzt werden wenn die Abklingzeit 0 ist.",
-	"commands.sportals.cooldown.success": "Abklingzeit für Spieler '§b%s§r' ist gegenwärtig '§b%d§r' ticks (~§b%.2f§r sek).",
 	"commands.errors.block_argument": "Ungültiger Block '%s'.",
 	"commands.errors.missing_dimension": "Die Dimension '§c%d§r' scheint nicht mehr zu existieren. Nur die Registrierungseinträge werden entfernt.",
 	"commands.errors.unknown_sender": "Der Befehlsabsender war kein Spieler.",
@@ -69,11 +67,16 @@
 	"config.ambient_sound_enabled.tooltip": "Wenn aktiviert, geben Portale Umgebungsgeräusche ab.",
 	"config.teleportation_sound_enabled": "Teleportationsgeräusch an",
 	"config.teleportation_sound_enabled.tooltip": "Wenn aktiviert, hören Spieler einen Geräuscheffekt wenn sie erfolgreich teleportiert wurden.",
+	"config.perm_level": "Benötigtes Berechtigungslevel",
+	"config.perm_level.tooltip": "Die Berechtigung, die benötigt wird, um ein Portal zu aktivieren",
 
 	"_comment": "TheOneProbe Tooltip Texts",
 	"interop.top.power_capacity": "§7Energie:§r",
 	"interop.top.power_sources": "§7Energiequellen:§r",
 	"interop.top.invalid_power_source": "§7Keine gültigen Gegenstände gefunden. Überprüfe deine Config.§r",
 	"interop.top.address": "§7Adresse:§r",
-	"interop.top.redstone_power": "§7Stärke:§r"
+	"interop.top.redstone_power": "§7Stärke:§r",
+
+	"_comment": "Information",
+	"info.simpleportals_reloaded.no_permission": "Entschuldigung, aber du hast nicht die Benötigte Berechtigung dieses Portal zu verändern"
 }

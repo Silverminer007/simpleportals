@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "simpleportals:portal_frame"
+          "name": "simpleportals_reloaded:portal_frame"
         }
       ],
       "conditions": [
