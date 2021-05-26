@@ -1,10 +1,10 @@
 {
-	"_comment": "Blocks",
+	"_comment1": "Blocks",
 	"block.simpleportals_reloaded.portal.name": "Portal",
 	"block.simpleportals_reloaded.portal_frame": "Portalrahmen",
 	"block.simpleportals_reloaded.power_gauge": "Energiemesser ",
 
-	"_comment": "Items",
+	"_comment2": "Items",
 	"item.simpleportals_reloaded.portal_frame": "Portalrahmen",
 	"item.simpleportals_reloaded.portal_frame.tooltip": "§e§oUmschalten§r§r gedrückt halten für Details.",
 	"item.simpleportals_reloaded.portal_frame.tooltip_details": "In rechteckiger Form ohne Ecken platzieren. Die Ecken mit beliebiger Kombination aus Blöcken beliebiger Kombination aus Blöcken füllen. Die Eckblöcke stellen die Adresse des Portals dar. Das Portal mit dem §bPortalaktivierer§r anschalten. (Ersetzbar durch §bEnergiemesser§r)",
@@ -15,7 +15,7 @@
 	"item.simpleportals_reloaded.portal_activator.tooltip": "§e§oUmschalten§r§r gedrückt halten für Details.",
 	"item.simpleportals_reloaded.portal_activator.tooltip_details": "Auf die innere Seite von §bPortalrahmen§r benutzen um Portale zu aktivieren. Beim §bSchleichen§r auf §bPortalrahmen§r benutzen um ihn sofort abzubauen. Kann von §bWerfern benutzt werden.",
 
-	"_comment": "Commands",
+	"_comment3": "Commands",
 	"commands.tpd.info": "Teleportiert einen Spieler zu einem Anderen, oder zu einer Position. Funktioniert über Dimensionen hinweg.",
 	"commands.tpd.success": "'§b%s§r' wurde nach '§bx=%d, y=%d, z=%d§r' in Dimension '§b%s§r' teleportiert.",
 	"commands.sportals.info": "SimplePortals Befehle zur Wartung/Fehlerbehebung.",
@@ -40,10 +40,10 @@
 	"commands.errors.multiple_portals_found_at_pos_in_dimension": "Es wurden mehrere Portale bei '§cx=%d, y=%d, z=%d§r' in der Dimension '§c%s§r' gefunden. Benutze die Koordinaten eines Blocks der Teil nur eines Portals ist.",
 	"commands.errors.no_power_items": "Es konnten keine gültigen Gegenstände für den Tag '§c%s§r' gefunden werden. Überprüfe deine Config.",
 
-	"_comment": "Creative UI tab label",
+	"_comment4": "Creative UI tab label",
 	"itemGroup.simplemods": "Simple Mods",
 
-	"_comment": "Config",
+	"_comment5": "Config",
 	"config.common": "Allgemein",
 	"config.client": "Client",
 	"config.input_valid": "Wert ist gültig.\n(Drücken um auf Standartwert zurückzusetzen)",
@@ -70,13 +70,13 @@
 	"config.perm_level": "Benötigtes Berechtigungslevel",
 	"config.perm_level.tooltip": "Die Berechtigung, die benötigt wird, um ein Portal zu aktivieren",
 
-	"_comment": "TheOneProbe Tooltip Texts",
+	"_comment6": "TheOneProbe Tooltip Texts",
 	"interop.top.power_capacity": "§7Energie:§r",
 	"interop.top.power_sources": "§7Energiequellen:§r",
 	"interop.top.invalid_power_source": "§7Keine gültigen Gegenstände gefunden. Überprüfe deine Config.§r",
 	"interop.top.address": "§7Adresse:§r",
 	"interop.top.redstone_power": "§7Stärke:§r",
 
-	"_comment": "Information",
+	"_comment7": "Information",
 	"info.simpleportals_reloaded.no_permission": "Entschuldigung, aber du hast nicht die Benötigte Berechtigung dieses Portal zu verändern"
 }

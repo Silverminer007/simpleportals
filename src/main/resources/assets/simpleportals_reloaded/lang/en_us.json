@@ -1,10 +1,10 @@
 {
-	"_comment": "Blocks",
+	"_comment1": "Blocks",
 	"block.simpleportals_reloaded.portal.name": "Portal",
 	"block.simpleportals_reloaded.portal_frame": "Portal Frame",
 	"block.simpleportals_reloaded.power_gauge": "Power Gauge",
 
-	"_comment": "Items",
+	"_comment2": "Items",
 	"item.simpleportals_reloaded.portal_frame": "Portal Frame",
 	"item.simpleportals_reloaded.portal_frame.tooltip": "Hold §e§oshift§r for details.",
 	"item.simpleportals_reloaded.portal_frame.tooltip_details": "Place in a rectangular shape\nwithout the corners. Fill in without the corners. Fill in the corners with any combination of blocks. The corner blocks serve as the address of the portal. Activate with a §bPortal Activator§r. (Replaceable with a §bPower Gauge§r)",
@@ -15,7 +15,7 @@
 	"item.simpleportals_reloaded.portal_activator.tooltip": "Hold §e§oshift§r§r for details.",
 	"item.simpleportals_reloaded.portal_activator.tooltip_details": "Use on the inner face of §bPortal Frames§r to activate portals. Use on a §bPortal §bFrame§r while §bsneaking§r to instantly dismantle it. Can be used by a §bDispenser.",
 
-	"_comment": "Commands",
+	"_comment3": "Commands",
 	"commands.tpd.info": "Teleports a player either to another player or to a position. Works across dimensions.",
 	"commands.tpd.success": "Teleported '§b%s§r' to '§bx=%d, y=%d, z=%d§r' in dimension '§b%s§r'.",
 	"commands.sportals.info": "Simpleportals maintenance/debugging commands.",
@@ -40,10 +40,10 @@
 	"commands.errors.multiple_portals_found_at_pos_in_dimension": "Multiple portals were found at '§cx=%d, y=%d, z=%d§r' in dimension '§c%s§r'. Use the coordinates of a block that is only part of one portal.",
 	"commands.errors.no_power_items": "No valid items found for item tag '§c%s§r'. Check your config.",
 
-	"_comment": "Creative UI tab label",
+	"_comment4": "Creative UI tab label",
 	"itemGroup.simplemods": "Simple Mods",
 
-	"_comment": "Config",
+	"_comment5": "Config",
 	"config.common": "Common",
 	"config.client": "Client",
 	"config.input_valid": "Value is valid.\n(Press to reset to default)",
@@ -70,13 +70,13 @@
 	"config.perm_level": "Required Activation level",
 	"config.perm_level.tooltip": "The Permission, that's required to activate a portal",
 
-	"_comment": "TheOneProbe Tooltip Texts",
+	"_comment6": "TheOneProbe Tooltip Texts",
 	"interop.top.power_capacity": "§7Power:§r",
 	"interop.top.power_sources": "§7Power sources:§r",
 	"interop.top.invalid_power_source": "§7No valid items found. Check your config.§r",
 	"interop.top.address": "§7Address:§r",
 	"interop.top.redstone_power": "§7Strength:§r",
 
-	"_comment": "Information",
+	"_comment7": "Information",
 	"info.simpleportals_reloaded.no_permission": "Sorry, but you miss the required permission to change this portal"
 }
