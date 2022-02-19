@@ -4,18 +4,18 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.silverminer.simpleportals_reloaded.common.Utils;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.BlockPosArgument;
-import net.minecraft.command.arguments.DimensionArgument;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandRuntimeException;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.commands.arguments.DimensionArgument;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 public class CommandTeleport
 {
@@ -25,7 +25,7 @@ public class CommandTeleport
 		ToPosition
 	}
 
-	public static void register(CommandDispatcher<CommandSource> dispatcher)
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
 		dispatcher.register(
 			Commands.literal("tpd").requires((commandSource) -> {
@@ -68,7 +68,7 @@ public class CommandTeleport
 		);
 	}
 
-	private static int tp(CommandSource source, TeleportMode mode, RegistryKey<World> dimension, BlockPos destination, ServerPlayerEntity targetPlayer, ServerPlayerEntity player)
+	private static int tp(CommandSourceStack source, TeleportMode mode, ResourceKey<Level> dimension, BlockPos destination, ServerPlayer targetPlayer, ServerPlayer player)
 	{
 		if (player == null)
 		{
@@ -78,7 +78,7 @@ public class CommandTeleport
 			}
 			catch (CommandSyntaxException ex)
 			{
-				throw new CommandException(new TranslationTextComponent("commands.errors.unknown_sender"));
+				throw new CommandRuntimeException(new TranslatableComponent("commands.errors.unknown_sender"));
 			}
 		}
 
@@ -101,8 +101,8 @@ public class CommandTeleport
 		return 1;
 	}
 
-	private static void SendTranslatedMessage(CommandSource source, String message, Object... args)
+	private static void SendTranslatedMessage(CommandSourceStack source, String message, Object... args)
 	{
-		source.sendSuccess(new TranslationTextComponent(message, args), true);
+		source.sendSuccess(new TranslatableComponent(message, args), true);
 	}
 }

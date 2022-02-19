@@ -1,18 +1,18 @@
 package com.silverminer.simpleportals_reloaded.theoneprobe;
 
 import mcjty.theoneprobe.api.*;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.tags.ITag;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.tags.Tag;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.Collection;
@@ -36,7 +36,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 	private static final String ADDRESS = PORTAL_INFO + "address" + IProbeInfo.ENDLOC;
 	private static final String REDSTONE_POWER = PORTAL_INFO + "redstone_power" + IProbeInfo.ENDLOC;
 
-	private static final IForgeRegistry<Block> BLOCK_REGISTRY = GameRegistry.findRegistry(Block.class);
+	private static final IForgeRegistry<Block> BLOCK_REGISTRY = ForgeRegistries.BLOCKS;
 
 	@Override
 	public String getID()
@@ -45,7 +45,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 	}
 
 	@Override
-	public void addProbeInfo(ProbeMode mode, IProbeInfo probeInfo, PlayerEntity player, World world, BlockState blockState, IProbeHitData data)
+	public void addProbeInfo(ProbeMode mode, IProbeInfo probeInfo, Player player, Level world, BlockState blockState, IProbeHitData data)
 	{
 		// Note: Text translations will only work in singleplayer. On a dedicated server everything will be english only unfortunately.
 
@@ -60,7 +60,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 			{
 				int power = PortalRegistry.getPower(portal);
 				int percentage = (Config.powerCapacity.get() > 0)
-								 ? MathHelper.clamp((int) ((long) power * 100 / Config.powerCapacity.get()), 0, 100)
+								 ? Mth.clamp((int) ((long) power * 100 / Config.powerCapacity.get()), 0, 100)
 								 : 100;
 
 				probeInfo.text(POWER_CAPACITY + String.format(" %,d/%,d (%d%%)", power, Config.powerCapacity.get(), percentage));
@@ -72,7 +72,7 @@ public class PortalInfoProvider implements IProbeInfoProvider
 
 					probeInfo.text(POWER_SOURCES);
 					IProbeInfo powerSourceInfo =  probeInfo.horizontal();
-					ITag<Item> powerTag = ItemTags.getAllTags().getTag(Config.powerSource);
+					Tag<Item> powerTag = ItemTags.getAllTags().getTag(Config.powerSource);
 
 					if (powerTag != null)
 					{

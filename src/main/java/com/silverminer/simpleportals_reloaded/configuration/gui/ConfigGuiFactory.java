@@ -1,8 +1,8 @@
 package com.silverminer.simpleportals_reloaded.configuration.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -23,7 +23,7 @@ public final class ConfigGuiFactory
 
 	public static Screen getConfigGui(Minecraft mc, Screen parent)
 	{
-		return new ConfigGui(new StringTextComponent("Simple Portals Config"), parent, configSpecs);
+		return new ConfigGui(new TextComponent("Simple Portals Config"), parent, configSpecs);
 	}
 
 	public static void setConfigHolder(String classPath)

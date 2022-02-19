@@ -1,27 +1,26 @@
 package com.silverminer.simpleportals_reloaded.blocks;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.common.ToolType;
-
-import java.util.List;
-
 import com.silverminer.simpleportals_reloaded.SimplePortals;
 import com.silverminer.simpleportals_reloaded.configuration.Config;
 import com.silverminer.simpleportals_reloaded.registration.Portal;
 import com.silverminer.simpleportals_reloaded.registration.PortalRegistry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Represents the frame of the portal mutliblock.
@@ -33,15 +32,15 @@ public class BlockPortalFrame extends Block {
 
 	public BlockPortalFrame(String registryName) {
 		super(Block.Properties.of(Material.STONE, MaterialColor.COLOR_BLACK).strength(50.0f, 200.0f)
-				.sound(SoundType.STONE).harvestTool(ToolType.PICKAXE).harvestLevel(3));
+				.sound(SoundType.STONE).requiresCorrectToolForDrops());
 
 		setRegistryName(registryName);
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
-			BlockRayTraceResult hit) {
+	public @NotNull InteractionResult use(@NotNull BlockState state, Level world, @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand,
+										  @NotNull BlockHitResult hit) {
 		if (!world.isClientSide) {
 			ItemStack heldStack = player.getItemInHand(hand);
 			Item usedItem = heldStack.getItem();
@@ -57,7 +56,7 @@ public class BlockPortalFrame extends Block {
 						PortalRegistry.activatePortal(world, pos, hit.getDirection());
 					}
 				} else {
-					player.sendMessage(new TranslationTextComponent("info.simpleportals_reloaded.no_permission"), null);
+					player.sendMessage(new TranslatableComponent("info.simpleportals_reloaded.no_permission"), player.getUUID());
 				}
 			}
 		}
@@ -67,7 +66,7 @@ public class BlockPortalFrame extends Block {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void onRemove(BlockState oldState, World world, BlockPos pos, BlockState newState, boolean isMoving) {
+	public void onRemove(@NotNull BlockState oldState, Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
 		if (!world.isClientSide) {
 			// Deactivate damaged portals.
 
@@ -88,11 +87,10 @@ public class BlockPortalFrame extends Block {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void neighborChanged(BlockState state, World world, BlockPos pos, Block neighborBlock, BlockPos neighborPos,
-			boolean isMoving) {
+	public void neighborChanged(@NotNull BlockState state, Level world, @NotNull BlockPos pos, @NotNull Block neighborBlock, @NotNull BlockPos neighborPos,
+								boolean isMoving) {
 		if (!world.isClientSide &&
-		// This line changes in 1.17: Remove every parameter and it will work again
-				!neighborBlock.defaultBlockState().isAir(world, neighborPos) && // I'd like to supply a proper
+				!neighborBlock.defaultBlockState().isAir() && // I'd like to supply a proper
 																				// BlockState here but the new block has
 																				// already been placed, so there's no
 																				// way.

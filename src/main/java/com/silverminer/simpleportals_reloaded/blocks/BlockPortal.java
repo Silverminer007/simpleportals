@@ -1,34 +1,34 @@
 package com.silverminer.simpleportals_reloaded.blocks;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BreakableBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particles.ParticleTypes;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.HalfTransparentBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.shapes.IBooleanFunction;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -43,11 +43,12 @@ import com.silverminer.simpleportals_reloaded.common.Utils;
 import com.silverminer.simpleportals_reloaded.configuration.Config;
 import com.silverminer.simpleportals_reloaded.registration.Portal;
 import com.silverminer.simpleportals_reloaded.registration.PortalRegistry;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the actual portals in the center of the portal multiblock.
  */
-public class BlockPortal extends BreakableBlock {
+public class BlockPortal extends HalfTransparentBlock {
 	private static final VoxelShape X_AABB = Block.box(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
 	private static final VoxelShape Y_AABB = Block.box(0.0D, 6.0D, 0.0D, 16.0D, 10.0D, 16.0D);
 	private static final VoxelShape Z_AABB = Block.box(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
@@ -57,20 +58,18 @@ public class BlockPortal extends BreakableBlock {
 	public BlockPortal() {
 		super(Block.Properties.of(Material.PORTAL).noCollission().noDrops().strength(-1.0F) // indestructible by normal
 																							// means
-				.lightLevel((state) -> {
-					return 11;
-				}).sound(SoundType.GLASS));
+				.lightLevel((state) -> 11).sound(SoundType.GLASS));
 
 		setRegistryName(SimplePortals.BLOCK_PORTAL_NAME);
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> stateBuilder) {
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> stateBuilder) {
 		stateBuilder.add(AXIS);
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader blockReader, BlockPos pos, ISelectionContext selection) {
+	public @NotNull VoxelShape getShape(BlockState state, @NotNull BlockGetter blockReader, @NotNull BlockPos pos, @NotNull CollisionContext selection) {
 		Axis portalAxis = state.getValue(AXIS);
 
 		switch (portalAxis) {
@@ -85,13 +84,13 @@ public class BlockPortal extends BreakableBlock {
 	}
 
 	@Override
-	public void entityInside(BlockState state, World world, BlockPos pos, Entity entity) {
+	public void entityInside(@NotNull BlockState state, Level world, @NotNull BlockPos pos, @NotNull Entity entity) {
 		if (!world.isClientSide && entity.isAlive() && !entity.isPassenger() && !entity.isVehicle()
 				&& entity.canChangeDimensions()
-				&& VoxelShapes.joinIsNotEmpty(
-						VoxelShapes.create(entity.getBoundingBox().move((double) (-pos.getX()),
-								(double) (-pos.getY()), (double) (-pos.getZ()))),
-						state.getShape(world, pos), IBooleanFunction.AND)) {
+				&& Shapes.joinIsNotEmpty(
+						Shapes.create(entity.getBoundingBox().move(-pos.getX(),
+								-pos.getY(), -pos.getZ())),
+						state.getShape(world, pos), BooleanOp.AND)) {
 
 			List<Portal> portals = PortalRegistry.getPortalsAt(pos, entity.level.dimension());
 
@@ -114,7 +113,7 @@ public class BlockPortal extends BreakableBlock {
 					if (surplus > 0) {
 						item.setCount(surplus);
 					} else {
-						entity.remove();
+						entity.remove(Entity.RemovalReason.DISCARDED);
 					}
 
 					return;
@@ -122,8 +121,8 @@ public class BlockPortal extends BreakableBlock {
 			}
 
 			// Bypass the power cost for players in creative mode
-			boolean bypassPowerCost = (entity instanceof ServerPlayerEntity
-					&& ((ServerPlayerEntity) entity).isCreative());
+			boolean bypassPowerCost = (entity instanceof ServerPlayer
+					&& ((ServerPlayer) entity).isCreative());
 
 			// Check if portal has enough power for a port
 			if (!bypassPowerCost && PortalRegistry.getPower(start) < Config.powerCost.get())
@@ -145,9 +144,9 @@ public class BlockPortal extends BreakableBlock {
 				if (mcServer == null)
 					return;
 
-				int entityHeight = MathHelper.ceil(entity.getBbHeight());
-				ServerWorld serverWorld;
-				RegistryKey<World> dimension;
+				int entityHeight = Mth.ceil(entity.getBbHeight());
+				ServerLevel serverWorld;
+				ResourceKey<Level> dimension;
 				BlockPos destinationPos = null;
 				Portal destinationPortal = null;
 
@@ -182,7 +181,7 @@ public class BlockPortal extends BreakableBlock {
 											? Direction.EAST
 											: Direction.WEST;
 
-					if (entity instanceof ServerPlayerEntity) {
+					if (entity instanceof ServerPlayer) {
 						// Player teleportations are queued to avoid at least some of the problems that
 						// arise from
 						// handling player teleportation inside an entity collision handler. There seem
@@ -196,15 +195,13 @@ public class BlockPortal extends BreakableBlock {
 						// platform generation stuff.
 						try {
 							SimplePortals.TELEPORT_QUEUE
-									.put(new TeleportTask(mcServer.getTickCount(), (ServerPlayerEntity) entity,
+									.put(new TeleportTask(mcServer.getTickCount(), (ServerPlayer) entity,
 											destinationPortal.getDimension(), destinationPos, entityFacing));
 						} catch (InterruptedException ex) {
 							SimplePortals.log.error(
 									"Failed to enqueue teleportation task for player '{}' to dimension '{}'.",
-									((ServerPlayerEntity) entity).getName(),
-									(destinationPortal.getDimension().getRegistryName() != null)
-											? destinationPortal.getDimension().getRegistryName()
-											: "UNKNOWN");
+									entity.getName(),
+									destinationPortal.getDimension().getRegistryName());
 						}
 					} else {
 						Utils.teleportTo(entity, destinationPortal.getDimension(), destinationPos, entityFacing);
@@ -217,7 +214,7 @@ public class BlockPortal extends BreakableBlock {
 	}
 
 	@Override
-	public void onRemove(BlockState oldState, World world, BlockPos pos, BlockState newState, boolean isMoving) {
+	public void onRemove(@NotNull BlockState oldState, Level world, @NotNull BlockPos pos, @NotNull BlockState newState, boolean isMoving) {
 		if (!world.isClientSide) {
 			// Deactivate damaged portals.
 
@@ -235,24 +232,24 @@ public class BlockPortal extends BreakableBlock {
 	}
 
 	@Override
-	public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader world, BlockPos pos, PlayerEntity player) {
+	public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter world, BlockPos pos, Player player) {
 		return ItemStack.EMPTY;
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void animateTick(BlockState state, World world, BlockPos pos, Random rand) {
+	public void animateTick(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos, @NotNull Random rand) {
 		if (Config.ambientSoundEnabled.get() && rand.nextInt(100) == 0) {
 			world.playLocalSound((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D,
-					SoundEvents.PORTAL_AMBIENT, SoundCategory.BLOCKS, 0.5F, rand.nextFloat() * 0.4F + 0.8F,
+					SoundEvents.PORTAL_AMBIENT, SoundSource.BLOCKS, 0.5F, rand.nextFloat() * 0.4F + 0.8F,
 					false);
 		}
 
 		if (Config.particlesEnabled.get()) {
 			for (int i = 0; i < 4; ++i) {
-				double d0 = (double) ((float) pos.getX() + rand.nextFloat());
-				double d1 = (double) ((float) pos.getY() + rand.nextFloat());
-				double d2 = (double) ((float) pos.getZ() + rand.nextFloat());
+				double d0 = (float) pos.getX() + rand.nextFloat();
+				double d1 = (float) pos.getY() + rand.nextFloat();
+				double d2 = (float) pos.getZ() + rand.nextFloat();
 				double d3 = ((double) rand.nextFloat() - 0.5D) * 0.5D;
 				double d4 = ((double) rand.nextFloat() - 0.5D) * 0.5D;
 				double d5 = ((double) rand.nextFloat() - 0.5D) * 0.5D;
@@ -261,10 +258,10 @@ public class BlockPortal extends BreakableBlock {
 				if (world.getBlockState(pos.west()).getBlock() != this
 						&& world.getBlockState(pos.east()).getBlock() != this) {
 					d0 = (double) pos.getX() + 0.5D + 0.25D * (double) j;
-					d3 = (double) (rand.nextFloat() * 2.0F * (float) j);
+					d3 = rand.nextFloat() * 2.0F * (float) j;
 				} else {
 					d2 = (double) pos.getZ() + 0.5D + 0.25D * (double) j;
-					d5 = (double) (rand.nextFloat() * 2.0F * (float) j);
+					d5 = rand.nextFloat() * 2.0F * (float) j;
 				}
 
 				world.addParticle(ParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);

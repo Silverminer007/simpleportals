@@ -1,25 +1,25 @@
 package com.silverminer.simpleportals_reloaded.items;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.DispenserBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.dispenser.DefaultDispenseItemBehavior;
-import net.minecraft.dispenser.IBlockSource;
-import net.minecraft.dispenser.IDispenseItemBehavior;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.Direction.AxisDirection;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.core.BlockSource;
+import net.minecraft.core.dispenser.DispenseItemBehavior;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.Direction.AxisDirection;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -51,7 +51,7 @@ public class ItemPortalActivator extends Item
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(ItemStack stack, @Nullable World world, List<ITextComponent> tooltip, ITooltipFlag flag)
+	public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag)
 	{
 		long windowHandle = Minecraft.getInstance().getWindow().getWindow();
 		int leftShiftState = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_LEFT_SHIFT);
@@ -63,22 +63,22 @@ public class ItemPortalActivator extends Item
 
 		if (leftShiftState == GLFW.GLFW_PRESS || rightShiftState == GLFW.GLFW_PRESS)
 		{
-			tooltip.add(new TranslationTextComponent(toolTipDetailsKey));
+			tooltip.add(new TranslatableComponent(toolTipDetailsKey));
 		}
 		else
 		{
-			tooltip.add(new TranslationTextComponent(toolTipKey));
+			tooltip.add(new TranslatableComponent(toolTipKey));
 		}
 	}
 
 	@Override
-	public boolean doesSneakBypassUse(ItemStack stack, IWorldReader world, BlockPos pos, PlayerEntity player)
+	public boolean doesSneakBypassUse(ItemStack stack, LevelReader world, BlockPos pos, Player player)
 	{
 		return true;
 	}
 
 	@Override
-	public ActionResultType useOn(ItemUseContext context)
+	public InteractionResult useOn(UseOnContext context)
 	{
 		if (context.getLevel().getBlockState(context.getClickedPos()).getBlock() instanceof BlockPortalFrame) {
 			context.getPlayer().swing(context.getHand());
@@ -91,16 +91,16 @@ public class ItemPortalActivator extends Item
 	 * Custom dispenser behavior that allows dispensers to activate portals with a contained
 	 * portal activator.
 	 */
-	private final static IDispenseItemBehavior dispenserBehavior = new IDispenseItemBehavior()
+	private final static DispenseItemBehavior dispenserBehavior = new DispenseItemBehavior()
 	{
 		private final DefaultDispenseItemBehavior defaultBehavior = new DefaultDispenseItemBehavior();
 		
 		@Override
-		public ItemStack dispense(IBlockSource source, ItemStack stack)
+		public ItemStack dispense(BlockSource source, ItemStack stack)
 		{
 			if (ItemStack.isSame(stack, new ItemStack(SimplePortals.itemPortalActivator)))
 			{
-				World world = source.getLevel();
+				Level world = source.getLevel();
 				BlockState dispenser = world.getBlockState(source.getPos());
 				
 				// Start searching for portal frame blocks in the direction the dispenser is facing.

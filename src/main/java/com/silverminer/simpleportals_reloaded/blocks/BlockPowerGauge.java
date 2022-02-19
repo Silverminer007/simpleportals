@@ -1,9 +1,9 @@
 package com.silverminer.simpleportals_reloaded.blocks;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ public class BlockPowerGauge extends BlockPortalFrame
 	}
 	
 	@Override
-	public int getAnalogOutputSignal(BlockState state, World world, BlockPos pos)
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos)
 	{
 		if (!world.isClientSide)
 		{
@@ -45,7 +45,7 @@ public class BlockPowerGauge extends BlockPortalFrame
 					signalSum += getSignalStrength(portal);
 				}
 
-				return MathHelper.floor(signalSum / (float)portals.size());		// combined signal strength
+				return Mth.floor(signalSum / (float)portals.size());		// combined signal strength
 			}
 		}
 
@@ -65,14 +65,14 @@ public class BlockPowerGauge extends BlockPortalFrame
 	{
 		if (portal != null && Config.powerCost.get() > 0 && Config.powerCapacity.get() > 0)
 		{
-			int maxUses = MathHelper.floor(Config.powerCapacity.get() / (float)Config.powerCost.get());
+			int maxUses = Mth.floor(Config.powerCapacity.get() / (float)Config.powerCost.get());
 			
 			if (maxUses > 0)
 			{
 				int power = PortalRegistry.getPower(portal);
-				int uses = MathHelper.floor(power / (float)Config.powerCost.get());
+				int uses = Mth.floor(power / (float)Config.powerCost.get());
 				
-				int signalStrength = MathHelper.floor((uses / (float)maxUses) * 14.0f) + ((uses > 0) ? 1 : 0);
+				int signalStrength = Mth.floor((uses / (float)maxUses) * 14.0f) + ((uses > 0) ? 1 : 0);
 				
 				return Math.min(signalStrength, 15);
 			}

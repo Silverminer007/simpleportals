@@ -1,20 +1,14 @@
 package com.silverminer.simpleportals_reloaded.registration;
 
 import com.google.common.base.Strings;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-/**
- * Represents the address of a portal.<br>
- * The address consists of 4 blockIds as provided by
- * {@link PortalRegistry#getAddressBlockId(net.minecraft.block.Block)}.
- * Multiple blocks with the same name/meta are allowed.
- */
-public class Address implements INBTSerializable<CompoundNBT>
+public class Address implements INBTSerializable<CompoundTag>
 {
 	private static final int LENGTH = 4;
 	
@@ -53,16 +47,16 @@ public class Address implements INBTSerializable<CompoundNBT>
 	}
 	
 	@Override
-	public CompoundNBT serializeNBT()
+	public CompoundTag serializeNBT()
 	{
-		CompoundNBT mainTag = new CompoundNBT();
-		CompoundNBT countTag;
+		CompoundTag mainTag = new CompoundTag();
+		CompoundTag countTag;
 		
 		int i = 0;
 		
 		for (Entry<String, Integer> blockCount : blockCounts.entrySet())
 		{
-			countTag = new CompoundNBT();
+			countTag = new CompoundTag();
 			countTag.putString("id", blockCount.getKey());
 			countTag.putInt("count", blockCount.getValue());
 			
@@ -73,13 +67,13 @@ public class Address implements INBTSerializable<CompoundNBT>
 	}
 	
 	@Override
-	public void deserializeNBT(CompoundNBT nbt)
+	public void deserializeNBT(CompoundTag nbt)
 	{
 		if (nbt == null) return;
 		
 		int i = 0;
 		String key;
-		CompoundNBT countTag;
+		CompoundTag countTag;
 		
 		while (nbt.contains(key = String.valueOf(i++)))
 		{

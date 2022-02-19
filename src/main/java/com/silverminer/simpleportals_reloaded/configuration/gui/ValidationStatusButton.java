@@ -1,21 +1,21 @@
 package com.silverminer.simpleportals_reloaded.configuration.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.text.StringTextComponent;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 @OnlyIn(Dist.CLIENT)
 class ValidationStatusButton extends Button
 {
 	private boolean valid;
 
-	public ValidationStatusButton(int x, int y, IPressable clickHandler)
+	public ValidationStatusButton(int x, int y, OnPress clickHandler)
 	{
-		super(x, y, 15, 15, new StringTextComponent(""), clickHandler);
+		super(x, y, 15, 15, new TextComponent(""), clickHandler);
 
 		this.valid = true;
 	}
@@ -23,11 +23,6 @@ class ValidationStatusButton extends Button
 	public void setValid(boolean isValid)
 	{
 		this.valid = isValid;
-	}
-
-	public void setValid()
-	{
-		this.valid = true;
 	}
 
 	public void setInvalid()
@@ -40,12 +35,11 @@ class ValidationStatusButton extends Button
 		return this.valid;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
-	public void render(MatrixStack ms, int mouseX, int mouseY, float partialTicks)
+	public void render(@NotNull PoseStack ms, int mouseX, int mouseY, float partialTicks)
 	{
-		Minecraft.getInstance().getTextureManager().bind(Button.WIDGETS_LOCATION);
-		GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShaderTexture(0, Button.WIDGETS_LOCATION);
+		RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, this.alpha);
 		Icon icon = (this.valid) ? Icon.VALID : Icon.INVALID;
 
 		this.blit(ms, this.x, this.y, icon.getX(), icon.getY(), this.width, this.height);

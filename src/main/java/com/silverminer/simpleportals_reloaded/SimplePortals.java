@@ -1,25 +1,5 @@
 package com.silverminer.simpleportals_reloaded;
 
-import net.minecraft.command.arguments.ArgumentSerializer;
-import net.minecraft.command.arguments.ArgumentTypes;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ExtensionPoint;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLPaths;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.silverminer.simpleportals_reloaded.blocks.BlockPortal;
 import com.silverminer.simpleportals_reloaded.blocks.BlockPortalFrame;
 import com.silverminer.simpleportals_reloaded.blocks.BlockPowerGauge;
@@ -29,6 +9,25 @@ import com.silverminer.simpleportals_reloaded.common.TeleportTask;
 import com.silverminer.simpleportals_reloaded.configuration.Config;
 import com.silverminer.simpleportals_reloaded.configuration.gui.ConfigGuiFactory;
 import com.silverminer.simpleportals_reloaded.items.ItemPortalActivator;
+import net.minecraft.commands.synchronization.ArgumentTypes;
+import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.ConfigGuiHandler;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -54,7 +53,7 @@ public class SimplePortals {
 	public static BlockItem itemPowerGauge;
 
 	// creative tab
-	public static ItemGroup creativeTab = MakeCreativeTab();
+	public static CreativeModeTab creativeTab = MakeCreativeTab();
 	// world save data handler
 	public static PortalWorldSaveData portalSaveData;
 
@@ -69,7 +68,7 @@ public class SimplePortals {
 
 	public SimplePortals() {
 		// Register custom argument types for command parser
-		ArgumentTypes.register("sportals_block", BlockArgument.class, new ArgumentSerializer<>(BlockArgument::block));
+		ArgumentTypes.register("sportals_block", BlockArgument.class, new EmptyArgumentSerializer<>(BlockArgument::block));
 
 		// Setup configs
 		ModLoadingContext Mlc = ModLoadingContext.get();
@@ -81,8 +80,9 @@ public class SimplePortals {
 		// Setup config UI
 		DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
 			ConfigGuiFactory.setConfigHolder("com.silverminer.simpleportals_reloaded.configuration.Config");
-			ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.CONFIGGUIFACTORY,
-					() -> ConfigGuiFactory::getConfigGui);
+			ModLoadingContext.get().registerExtensionPoint(
+					ConfigGuiHandler.ConfigGuiFactory.class,
+					() -> new ConfigGuiHandler.ConfigGuiFactory(ConfigGuiFactory::getConfigGui));
 		});
 
 		// Setup event listeners
@@ -91,17 +91,17 @@ public class SimplePortals {
 		MinecraftForge.EVENT_BUS.register(EventHub.ForgeEventBus.class);
 	}
 
-	static ItemGroup MakeCreativeTab() {
+	static CreativeModeTab MakeCreativeTab() {
 		// Checks if a "Simple Mods" tab already exists, otherwise makes one.
-		return Arrays.stream(ItemGroup.TABS)
+		return Arrays.stream(CreativeModeTab.TABS)
 				.filter(tab -> tab.getRecipeFolderName().equals(SimplePortals.SIMPLE_MODS_ID)).findFirst()
-				.orElseGet(() -> new ItemGroup(SimplePortals.SIMPLE_MODS_ID) {
+				.orElseGet(() -> new CreativeModeTab(SimplePortals.SIMPLE_MODS_ID) {
 					@OnlyIn(Dist.CLIENT)
 					private ItemStack iconStack;
 
 					@Override
 					@OnlyIn(Dist.CLIENT)
-					public ItemStack makeIcon() {
+					public @NotNull ItemStack makeIcon() {
 						if (iconStack == null)
 							iconStack = new ItemStack(itemPortalFrame);
 

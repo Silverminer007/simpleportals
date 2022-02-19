@@ -1,8 +1,5 @@
 package com.silverminer.simpleportals_reloaded;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.silverminer.simpleportals_reloaded.blocks.BlockPortal;
 import com.silverminer.simpleportals_reloaded.blocks.BlockPortalFrame;
 import com.silverminer.simpleportals_reloaded.blocks.BlockPowerGauge;
@@ -16,15 +13,14 @@ import com.silverminer.simpleportals_reloaded.items.ItemPortalActivator;
 import com.silverminer.simpleportals_reloaded.items.ItemPortalFrame;
 import com.silverminer.simpleportals_reloaded.items.ItemPowerGauge;
 import com.silverminer.simpleportals_reloaded.theoneprobe.TheOneProbeCompat;
-
-import net.minecraft.block.Block;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
-import net.minecraft.item.Item;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent;
@@ -35,13 +31,13 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 
 /**
  * Hosts Forge event handlers on both the server and client side.
  */
 public final class EventHub {
-	protected static final Logger LOGGER = LogManager.getLogger(EventHub.class);
 
 	public static class ModEventBus {
 
@@ -49,21 +45,21 @@ public final class EventHub {
 		public static void onInteropSetup(InterModEnqueueEvent event) {
 			if (ModList.get().isLoaded("theoneprobe")) {
 				SimplePortals.log.debug("Sending compatibility request to TheOneProbe.");
-				InterModComms.sendTo("theoneprobe", "getTheOneProbe", () -> new TheOneProbeCompat());
+				InterModComms.sendTo("theoneprobe", "getTheOneProbe", TheOneProbeCompat::new);
 			} else {
 				SimplePortals.log.debug("TheOneProbe not found. Skipping compatibility request.");
 			}
 		}
 
 		@SubscribeEvent
-		public static void onConfigLoaded(ModConfig.Loading event) {
+		public static void onConfigLoaded(ModConfigEvent.Loading event) {
 			if (event.getConfig().getType() == ModConfig.Type.COMMON) {
 				Config.updatePowerSource();
 			}
 		}
 
 		@SubscribeEvent
-		public static void onConfigChanged(ModConfig.Reloading event) {
+		public static void onConfigChanged(ModConfigEvent.Reloading event) {
 			if (event.getConfig().getType() == ModConfig.Type.COMMON) {
 				Config.updatePowerSource();
 			}
@@ -78,9 +74,7 @@ public final class EventHub {
 			event.getRegistry().registerAll(SimplePortals.blockPortal, SimplePortals.blockPortalFrame,
 					SimplePortals.blockPowerGauge);
 
-			DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-				RenderTypeLookup.setRenderLayer(SimplePortals.blockPortal, RenderType.translucent());
-			});
+			DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ItemBlockRenderTypes.setRenderLayer(SimplePortals.blockPortal, RenderType.translucent()));
 		}
 
 		@SubscribeEvent
@@ -132,16 +126,15 @@ public final class EventHub {
 
 		@SubscribeEvent
 		public static void OnWorldLoad(Load event) {
-			IWorld iworld = event.getWorld();
-			if (!(iworld instanceof World)) {
+			LevelAccessor iworld = event.getWorld();
+			if (!(iworld instanceof Level world)) {
 				return;
 			}
-			World world = (World) iworld;
 
 			// WorldSavedData can no longer be stored per map but only per dimension. So
 			// store the registry in the overworld.
-			if (!world.isClientSide() && world.dimension() == World.OVERWORLD && world instanceof ServerWorld) {
-				SimplePortals.portalSaveData = PortalWorldSaveData.get((ServerWorld) world);
+			if (!world.isClientSide() && world.dimension() == Level.OVERWORLD && world instanceof ServerLevel) {
+				SimplePortals.portalSaveData = PortalWorldSaveData.get((ServerLevel) world);
 			}
 		}
 	}

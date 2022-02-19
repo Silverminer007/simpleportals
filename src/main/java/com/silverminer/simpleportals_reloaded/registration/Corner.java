@@ -1,14 +1,14 @@
 package com.silverminer.simpleportals_reloaded.registration;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.util.INBTSerializable;
 
 /**
  * Represents a corner of a portal.
  */
-public class Corner implements INBTSerializable<CompoundNBT>
+public class Corner implements INBTSerializable<CompoundTag>
 {
 	private BlockPos pos;
 	private Direction facingA;
@@ -72,9 +72,9 @@ public class Corner implements INBTSerializable<CompoundNBT>
 	}
 	
 	@Override
-	public CompoundNBT serializeNBT()
+	public CompoundTag serializeNBT()
 	{
-		CompoundNBT tag = new CompoundNBT();
+		CompoundTag tag = new CompoundTag();
 		tag.putLong("pos", pos.asLong());
 		tag.putString("facingA", facingA.name());
 		tag.putString("facingB", facingB.name());
@@ -83,7 +83,7 @@ public class Corner implements INBTSerializable<CompoundNBT>
 	}
 	
 	@Override
-	public void deserializeNBT(CompoundNBT nbt)
+	public void deserializeNBT(CompoundTag nbt)
 	{
 		if (nbt == null) return;
 		

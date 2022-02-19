@@ -2,24 +2,26 @@ package com.silverminer.simpleportals_reloaded.configuration.gui;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.widget.button.ImageButton;
-import net.minecraft.client.gui.widget.list.AbstractOptionList;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ContainerObjectSelectionList;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.util.StringUtil;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.client.gui.widget.ExtendedButton;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,13 +29,13 @@ import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class ConfigGui extends Screen {
-	private Screen parent;
-	private ForgeConfigSpec[] configSpecs;
+	private final Screen parent;
+	private final ForgeConfigSpec[] configSpecs;
 	private ModOptionList optionList;
 
 	private static final int PADDING = 5;
 
-	public ConfigGui(ITextComponent title, Screen parent, ForgeConfigSpec[] configSpecs) {
+	public ConfigGui(Component title, Screen parent, ForgeConfigSpec[] configSpecs) {
 		super(title);
 
 		this.parent = parent;
@@ -41,42 +43,38 @@ public class ConfigGui extends Screen {
 	}
 
 	@Override
-	public void init(Minecraft mc, int width, int height) {
-		super.init(mc, width, height);
-
-		int titleHeight = mc.font.wordWrapHeight(title.getString(), width - 2 * PADDING);
+	protected void init() {
+		if(this.minecraft == null) return;
+		int titleHeight = this.font.wordWrapHeight(title.getString(), width - 2 * PADDING);
 		int paddedTitleHeight = titleHeight + PADDING * 2;
 
-		addButton(width - 120 - 2 * PADDING, 0, 60, paddedTitleHeight, new StringTextComponent("Back"),
-				button -> mc.setScreen(parent));
-		addButton(width - 60 - PADDING, 0, 60, paddedTitleHeight, new StringTextComponent("Save"), button -> {
+		addButton(width - 120 - 2 * PADDING, 0, 60, paddedTitleHeight, new TextComponent("Back"),
+				button -> this.minecraft.setScreen(parent));
+		addButton(width - 60 - PADDING, 0, 60, paddedTitleHeight, new TextComponent("Save"), button -> {
 			this.optionList.commitChanges();
 			for (ForgeConfigSpec spec : configSpecs)
 				spec.save();
 
-			mc.setScreen(parent);
+			this.minecraft.setScreen(parent);
 		});
 
 		int optionListHeaderHeight = titleHeight + 2 * PADDING;
 		this.optionList = new ModOptionList(configSpecs, minecraft, width, height, optionListHeaderHeight,
 				height - optionListHeaderHeight, 26);
-		this.children.add(optionList);
+		this.addRenderableWidget(this.optionList);
 	}
 
-	private void addButton(int x, int y, int width, int height, ITextComponent label, Button.IPressable pressHandler) {
+	private void addButton(int x, int y, int width, int height, Component label, Button.OnPress pressHandler) {
 		Button button = new ExtendedButton(x, y, width, height, label, pressHandler);
 
-		children.add(button);
-		buttons.add(button);
+		this.addRenderableWidget(button);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
-	public void render(MatrixStack ms, int mouseX, int mouseY, float partialTicks) {
+	public void render(@NotNull PoseStack ms, int mouseX, int mouseY, float partialTicks) {
+		if(this.minecraft == null) return;
 		this.renderBackground(ms);
 		this.optionList.render(ms, mouseX, mouseY, partialTicks);
-		RenderSystem.disableLighting(); // Rendering the tooltip enables lighting but buttons etc. assume lighting to be
-										// disabled.
 		super.render(ms, mouseX, mouseY, partialTicks);
 		minecraft.font.draw(ms, title.getString(), PADDING, PADDING, 16777215);
 	}
@@ -88,7 +86,7 @@ public class ConfigGui extends Screen {
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	public class ModOptionList extends AbstractOptionList<ModOptionList.Entry> {
+	public class ModOptionList extends ContainerObjectSelectionList<ModOptionList.Entry> {
 		private static final int LEFT_RIGHT_BORDER = 30;
 		private static final String I18N_TOOLTIP_SUFFIX = ".tooltip";
 		private static final String I18N_VALID = "config.input_valid";
@@ -106,17 +104,17 @@ public class ConfigGui extends Screen {
 		}
 
 		@Override
-		public void render(MatrixStack ms, int mouseX, int mouseY, float partialTicks) {
+		public void render(@NotNull PoseStack ms, int mouseX, int mouseY, float partialTicks) {
 			super.render(ms, mouseX, mouseY, partialTicks);
 
-			String tooltip = null;
+			String tooltip;
 
 			for (Entry entry : this.children()) {
 				tooltip = entry.getTooltip();
 
-				if (!StringUtils.isNullOrEmpty(tooltip)) {
-					List<ITextComponent> comment = Arrays.asList(tooltip.split("\n")).stream()
-							.map(s -> new StringTextComponent(s)).collect(Collectors.toList());
+				if (!StringUtil.isNullOrEmpty(tooltip)) {
+					List<Component> comment = Arrays.stream(tooltip.split("\n"))
+							.map(TextComponent::new).collect(Collectors.toList());
 					renderComponentTooltip(ms, comment, mouseX, mouseY);
 
 					break;
@@ -125,8 +123,8 @@ public class ConfigGui extends Screen {
 		}
 
 		public void tick() {
-			for (IGuiEventListener child : this.children()) {
-				((Entry) child).tick();
+			for (Entry child : this.children()) {
+				child.tick();
 			}
 		}
 
@@ -143,11 +141,11 @@ public class ConfigGui extends Screen {
 		@Override
 		public boolean mouseClicked(double x, double y, int button) {
 			if (super.mouseClicked(x, y, button)) {
-				IGuiEventListener focusedChild = getFocused();
+				GuiEventListener focusedChild = getFocused();
 
-				for (IGuiEventListener child : this.children()) {
+				for (Entry child : this.children()) {
 					if (child != focusedChild)
-						((Entry) child).clearFocus();
+						child.clearFocus();
 				}
 
 				return true;
@@ -184,7 +182,7 @@ public class ConfigGui extends Screen {
 		}
 
 		@OnlyIn(Dist.CLIENT)
-		public abstract class Entry extends AbstractOptionList.Entry<ConfigGui.ModOptionList.Entry> {
+		public abstract class Entry extends ContainerObjectSelectionList.Entry<ConfigGui.ModOptionList.Entry> {
 			public abstract void clearFocus();
 
 			public abstract void commitChanges();
@@ -205,14 +203,15 @@ public class ConfigGui extends Screen {
 			}
 
 			@Override
-			public void render(MatrixStack ms, int index, int top, int left, int width, int height, int mouseX,
-					int mouseY, boolean isHot, float partialTicks) {
-				minecraft.font.drawShadow(ms, this.text, minecraft.screen.width / 2 - this.width / 2,
+			public void render(@NotNull PoseStack ms, int index, int top, int left, int width, int height, int mouseX,
+							   int mouseY, boolean isHot, float partialTicks) {
+				if(minecraft.screen == null) return;
+				minecraft.font.drawShadow(ms, this.text, minecraft.screen.width / 2f - this.width / 2f,
 						top + height - 9 - 1, 16777215);
 			}
 
 			@Override
-			public List<? extends IGuiEventListener> children() {
+			public @NotNull List<? extends GuiEventListener> children() {
 				return Collections.emptyList();
 			}
 
@@ -237,18 +236,23 @@ public class ConfigGui extends Screen {
 			public String getTooltip() {
 				return null;
 			}
+
+			@Override
+			public @NotNull List<? extends NarratableEntry> narratables() {
+				return new ArrayList<>();
+			}
 		}
 
 		@OnlyIn(Dist.CLIENT)
 		public class OptionEntry extends Entry {
-			private ForgeConfigSpec.ValueSpec valueSpec;
-			private ForgeConfigSpec.ConfigValue<?> configValue;
-			private TextFieldWidget editBox;
+			private final ForgeConfigSpec.ValueSpec valueSpec;
+			private final ForgeConfigSpec.ConfigValue<?> configValue;
+			private EditBox editBox;
 			private CheckboxButtonEx checkBox;
 			private EnumOptionButton<?> enumButton;
-			private ImageButton needsWorldRestartButton;
-			private ValidationStatusButton validatedButton;
-			private List<IGuiEventListener> children;
+			private final ImageButton needsWorldRestartButton;
+			private final ValidationStatusButton validatedButton;
+			private final List<GuiEventListener> children;
 			private String tooltipText;
 
 			public OptionEntry(ForgeConfigSpec.ValueSpec valueSpec, ForgeConfigSpec.ConfigValue<?> configValue) {
@@ -268,15 +272,14 @@ public class ConfigGui extends Screen {
 
 				this.needsWorldRestartButton = new ImageButton(0, 0, 15, 12, 182, 24, 0, Button.WIDGETS_LOCATION, 256,
 						256, (b) -> {
-							;
-						});
+				});
 				this.needsWorldRestartButton.active = false;
 				this.needsWorldRestartButton.visible = valueSpec.needsWorldRestart();
 
 				Object value = configValue.get();
 
 				if (value instanceof Boolean) {
-					this.checkBox = new CheckboxButtonEx(0, 0, 20, 20, new StringTextComponent(""), (boolean) value);
+					this.checkBox = new CheckboxButtonEx(0, 0, 20, 20, new TextComponent(""), (boolean) value);
 
 					this.children = ImmutableList.of(this.validatedButton, this.needsWorldRestartButton, this.checkBox);
 				} else if (value instanceof Enum) {
@@ -287,8 +290,8 @@ public class ConfigGui extends Screen {
 					this.children = ImmutableList.of(this.validatedButton, this.needsWorldRestartButton,
 							this.enumButton);
 				} else {
-					this.editBox = new TextFieldWidget(minecraft.font, 0, 0, 100, itemHeight - PADDING,
-							new StringTextComponent(""));
+					this.editBox = new EditBox(minecraft.font, 0, 0, 100, itemHeight - PADDING,
+							new TextComponent(""));
 					this.editBox.setTextColor(16777215);
 					this.editBox.insertText(value.toString());
 					this.editBox.setMaxLength(256);
@@ -302,23 +305,12 @@ public class ConfigGui extends Screen {
 			}
 
 			@Override
-			public void render(MatrixStack ms, int index, int top, int left, int width, int height, int mouseX,
-					int mouseY, boolean isHot, float partialTicks) {
+			public void render(@NotNull PoseStack ms, int index, int top, int left, int width, int height, int mouseX,
+							   int mouseY, boolean isHot, float partialTicks) {
 				this.validatedButton.x = getScrollbarPosition() - this.validatedButton.getWidth()
 						- this.needsWorldRestartButton.getWidth() - 2 * PADDING;
 				this.validatedButton.y = top + ((itemHeight - this.validatedButton.getHeight()) / 2) - 1;
 				this.validatedButton.render(ms, mouseX, mouseY, partialTicks);
-
-				// This needs to be here because the TextFieldWidget changes the GL state and
-				// never sets it back,
-				// nor does the ImageButton set the correct values to render properly. Without
-				// this call, the
-				// ImageButtons are just black after the first TextFieldWidget is rendered.
-				// Update: No longer needed because the ValidationStatusButton sets up the state
-				// correctly and is rendered
-				// BEFORE this ImageButton. DON'T delete this comment to avoid confusion in the
-				// future.
-				// RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0f);
 
 				this.needsWorldRestartButton.x = getScrollbarPosition() - this.needsWorldRestartButton.getWidth()
 						- PADDING;
@@ -382,7 +374,7 @@ public class ConfigGui extends Screen {
 			}
 
 			@Override
-			public List<? extends IGuiEventListener> children() {
+			public @NotNull List<? extends GuiEventListener> children() {
 				return this.children;
 			}
 
@@ -415,7 +407,7 @@ public class ConfigGui extends Screen {
 								ForgeConfigSpec.IntValue cfg = (ForgeConfigSpec.IntValue) this.configValue;
 								cfg.set(parsedValue);
 							}
-						} catch (NumberFormatException ex) {
+						} catch (NumberFormatException ignored) {
 						}
 					} else if (value instanceof Long) {
 						try {
@@ -425,7 +417,7 @@ public class ConfigGui extends Screen {
 								ForgeConfigSpec.LongValue cfg = (ForgeConfigSpec.LongValue) this.configValue;
 								cfg.set(parsedValue);
 							}
-						} catch (NumberFormatException ex) {
+						} catch (NumberFormatException ignored) {
 						}
 					} else if (value instanceof Double) {
 						try {
@@ -435,7 +427,7 @@ public class ConfigGui extends Screen {
 								ForgeConfigSpec.DoubleValue cfg = (ForgeConfigSpec.DoubleValue) this.configValue;
 								cfg.set(parsedValue);
 							}
-						} catch (NumberFormatException ex) {
+						} catch (NumberFormatException ignored) {
 						}
 					} else if (value instanceof String) {
 						if (this.valueSpec.test(text)) {
@@ -489,6 +481,11 @@ public class ConfigGui extends Screen {
 				}
 
 				return true;
+			}
+
+			@Override
+			public @NotNull List<? extends NarratableEntry> narratables() {
+				return new ArrayList<>();
 			}
 		}
 	}

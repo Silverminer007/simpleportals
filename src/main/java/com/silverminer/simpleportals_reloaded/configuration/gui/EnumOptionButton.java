@@ -1,17 +1,19 @@
 package com.silverminer.simpleportals_reloaded.configuration.gui;
 
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.client.gui.widget.ExtendedButton;
+import net.minecraftforge.client.gui.widget.ExtendedButton;
+
+import java.util.Objects;
 
 @OnlyIn(Dist.CLIENT)
 public class EnumOptionButton<E extends Enum<E>> extends ExtendedButton {
-	private Class<E> clazz;
+	private final Class<E> clazz;
 	private int selectedIndex;
-	private String[] names;
-	private String[] i18nNames;
+	private final String[] names;
+	private final String[] i18nNames;
 
 	private static final String I18N_ENUM_PREFIX = "config.enums.";
 
@@ -23,10 +25,9 @@ public class EnumOptionButton<E extends Enum<E>> extends ExtendedButton {
 	 */
 	public EnumOptionButton(Class<E> clazz, String value, int x, int y, int width, int height) {
 		super(x, y, width, height,
-				new StringTextComponent(
+				new TextComponent(
 						I18n.get(I18N_ENUM_PREFIX + clazz.getSimpleName().toLowerCase() + "." + value.toLowerCase())),
 				(button) -> {
-					;
 				});
 
 		this.clazz = clazz;
@@ -51,7 +52,7 @@ public class EnumOptionButton<E extends Enum<E>> extends ExtendedButton {
 	@SuppressWarnings("unchecked")
 	public static <E extends Enum<E>> EnumOptionButton<E> create(Object o, String value, int x, int y, int width,
 			int height) {
-		return new EnumOptionButton<E>((Class<E>) o.getClass(), value, x, y, width, height);
+		return new EnumOptionButton<>((Class<E>) o.getClass(), value, x, y, width, height);
 	}
 
 	@Override
@@ -65,14 +66,13 @@ public class EnumOptionButton<E extends Enum<E>> extends ExtendedButton {
 	}
 
 	public void setValue(Object value) {
-		if (!(value instanceof Enum)) {
+		if (!(value instanceof Enum<?> e)) {
 			return;
 		}
-		Enum<?> e = (Enum<?>) value;
 		for (int i = 0; i < names.length; i++) {
-			if (names[i] == e.name()) {
+			if (Objects.equals(names[i], e.name())) {
 				this.selectedIndex = i;
-				this.setMessage(new StringTextComponent(this.i18nNames[i]));
+				this.setMessage(new TextComponent(this.i18nNames[i]));
 				break;
 			}
 		}
@@ -80,6 +80,6 @@ public class EnumOptionButton<E extends Enum<E>> extends ExtendedButton {
 
 	private void nextValue() {
 		this.selectedIndex = (this.selectedIndex + 1) % this.names.length;
-		this.setMessage(new StringTextComponent(this.i18nNames[this.selectedIndex]));
+		this.setMessage(new TextComponent(this.i18nNames[this.selectedIndex]));
 	}
 }

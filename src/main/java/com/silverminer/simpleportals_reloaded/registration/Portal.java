@@ -1,14 +1,14 @@
 package com.silverminer.simpleportals_reloaded.registration;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.Direction.Axis;
-import net.minecraft.util.Direction.AxisDirection;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.Direction.AxisDirection;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.ArrayList;
@@ -26,9 +26,9 @@ import com.silverminer.simpleportals_reloaded.common.Utils;
  * Note: Corner1 and Corner4 must be diagonal to each other, same for Corner2
  * and Corner3.
  */
-public class Portal implements INBTSerializable<CompoundNBT> {
+public class Portal implements INBTSerializable<CompoundTag> {
 	protected static final Logger LOGGER = LogManager.getLogger(Portal.class);
-	private RegistryKey<World> dimension;
+	private ResourceKey<Level> dimension;
 	private Address address;
 	private Axis axis;
 	private Corner corner1;
@@ -39,7 +39,7 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 	public Portal() {
 	}
 
-	public Portal(RegistryKey<World> dimension, Address address, Axis axis, Corner corner1, Corner corner2,
+	public Portal(ResourceKey<Level> dimension, Address address, Axis axis, Corner corner1, Corner corner2,
 			Corner corner3, Corner corner4) {
 		this.dimension = dimension;
 		this.address = address;
@@ -55,7 +55,7 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 	 * 
 	 * @return A <code>DimensionType</code> representing the dimension.
 	 */
-	public RegistryKey<World> getDimension() {
+	public ResourceKey<Level> getDimension() {
 		return dimension;
 	}
 
@@ -207,7 +207,7 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 	 * @return A {@link BlockPos} representing a possible spawn location or
 	 *         <code>null</code>.
 	 */
-	public BlockPos getPortDestination(World world, int entityHeight) {
+	public BlockPos getPortDestination(Level world, int entityHeight) {
 		if (world == null || entityHeight < 1)
 			return null;
 
@@ -359,7 +359,7 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 	 * @return <code>true</code> if the address has changed, otherwise
 	 *         <code>false</code>.
 	 */
-	public boolean hasAddressChanged(World world) {
+	public boolean hasAddressChanged(Level world) {
 		if (world == null)
 			return false;
 
@@ -379,7 +379,7 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 	 * @return <code>true</code> if the portal is missing one or more blocks,
 	 *         otherwise <code>false</code>.
 	 */
-	public boolean isDamaged(World world) {
+	public boolean isDamaged(Level world) {
 		if (world == null)
 			return false;
 
@@ -397,8 +397,8 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 	}
 
 	@Override
-	public CompoundNBT serializeNBT() {
-		CompoundNBT tag = new CompoundNBT();
+	public CompoundTag serializeNBT() {
+		CompoundTag tag = new CompoundTag();
 		tag.putString("dimension", (dimension != null && dimension.location() != null) ? dimension.location().toString() : "");
 		tag.put("address", address.serializeNBT());
 		tag.putString("axis", axis.name());
@@ -411,7 +411,7 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 	}
 
 	@Override
-	public void deserializeNBT(CompoundNBT nbt) {
+	public void deserializeNBT(CompoundTag nbt) {
 		if (nbt == null)
 			return;
 
@@ -420,9 +420,9 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 		if (nbt.contains("dimension", 8)) // Type 8 means string.
 		{
 			ResourceLocation dimensionRegistryKey = ResourceLocation.tryParse(nbt.getString("dimension"));
-			dimension = RegistryKey.create(Registry.DIMENSION_REGISTRY, dimensionRegistryKey);
+			dimension = ResourceKey.create(Registry.DIMENSION_REGISTRY, dimensionRegistryKey);
 		} else {
-			dimension = World.OVERWORLD;
+			dimension = Level.OVERWORLD;
 		}
 
 		address = new Address();
@@ -517,7 +517,7 @@ public class Portal implements INBTSerializable<CompoundNBT> {
 	 * @return <code>true</code> if the entity can spawn at the location, otherwise
 	 *         <code>false</code>.
 	 */
-	private boolean canEntitySpawnAt(World world, BlockPos pos, int entityHeight) {
+	private boolean canEntitySpawnAt(Level world, BlockPos pos, int entityHeight) {
 		if (world == null || pos == null || entityHeight < 1)
 			return false;
 

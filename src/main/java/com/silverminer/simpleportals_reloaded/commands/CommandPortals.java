@@ -11,19 +11,19 @@ import com.silverminer.simpleportals_reloaded.registration.Address;
 import com.silverminer.simpleportals_reloaded.registration.Portal;
 import com.silverminer.simpleportals_reloaded.registration.PortalRegistry;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.BlockPosArgument;
-import net.minecraft.command.arguments.DimensionArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.tags.ITag;
+import net.minecraft.commands.CommandRuntimeException;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.commands.arguments.DimensionArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.tags.Tag;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +41,7 @@ public class CommandPortals {
 		Add, Remove, Get, Items
 	}
 
-	public static void register(CommandDispatcher<CommandSource> dispatcher) {
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal("sportals").requires((commandSource) -> {
 			return commandSource.hasPermission(4);
 		}).executes(context -> {
@@ -117,7 +117,7 @@ public class CommandPortals {
 															PortalRegistry.getAddressBlockId(
 																	BlockArgument.getBlock(context, "address4")));
 
-													RegistryKey<World> dimension = DimensionArgument
+													ResourceKey<Level> dimension = DimensionArgument
 															.getDimension(context, "dimension").dimension();
 
 													return deactivate(context.getSource(), DeactiveMode.Address,
@@ -185,7 +185,7 @@ public class CommandPortals {
 													DimensionArgument.getDimension(context, "dimension").dimension());
 										}))))
 						.then(Commands.literal("items").executes(context -> {
-							ITag<Item> powerTag = ItemTags.getAllTags().getTag(Config.powerSource);
+							Tag<Item> powerTag = ItemTags.getAllTags().getTag(Config.powerSource);
 
 							if (powerTag == null) {
 								SendTranslatedMessage(context.getSource(), "commands.errors.no_power_items",
@@ -219,7 +219,7 @@ public class CommandPortals {
 						}))));
 	}
 
-	private static int list(CommandSource source, ListMode mode, Address address, RegistryKey<World> dimension) {
+	private static int list(CommandSourceStack source, ListMode mode, Address address, ResourceKey<Level> dimension) {
 		List<Portal> portals;
 
 		switch (mode) {
@@ -282,8 +282,8 @@ public class CommandPortals {
 		return 1;
 	}
 
-	private static int deactivate(CommandSource source, DeactiveMode mode, Address address, BlockPos pos,
-			RegistryKey<World> dimension) {
+	private static int deactivate(CommandSourceStack source, DeactiveMode mode, Address address, BlockPos pos,
+			ResourceKey<Level> dimension) {
 		List<Portal> portals = null;
 
 		switch (mode) {
@@ -305,7 +305,7 @@ public class CommandPortals {
 
 			if (dimension != null) {
 				// filter out all portals that are not in the specified dimension
-				final RegistryKey<World> dimensionCopy = dimension; // This is necessary because Java wants closures in
+				final ResourceKey<Level> dimensionCopy = dimension; // This is necessary because Java wants closures in
 																	// lambda expressions to be effectively final.
 				portals = portals.stream().filter((portal -> portal.getDimension() == dimensionCopy))
 						.collect(Collectors.toList());
@@ -318,18 +318,18 @@ public class CommandPortals {
 			if (dimension == null) {
 				try {
 					// Get the dimension the command sender is currently in.
-					ServerPlayerEntity player = source.getPlayerOrException();
+					ServerPlayer player = source.getPlayerOrException();
 					dimension = player.level.dimension();
 				} catch (CommandSyntaxException ex) {
-					throw new CommandException(
-							new TranslationTextComponent("commands.errors.unknown_sender_dimension"));
+					throw new CommandRuntimeException(
+							new TranslatableComponent("commands.errors.unknown_sender_dimension"));
 				}
 			}
 
 			portals = PortalRegistry.getPortalsAt(pos, dimension);
 			if (portals == null || portals.size() == 0)
-				throw new CommandException(
-						new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(),
+				throw new CommandRuntimeException(
+						new TranslatableComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(),
 								pos.getY(), pos.getZ(), dimension.getRegistryName()));
 
 			break;
@@ -339,10 +339,10 @@ public class CommandPortals {
 
 		for (Portal portal : portals) {
 			portalPos = portal.getCorner1().getPos();
-			RegistryKey<World> dimType = portal.getDimension();
+			ResourceKey<Level> dimType = portal.getDimension();
 			if (dimType == null)
-				throw new CommandException(
-						new TranslationTextComponent("commands.errors.missing_dimension", portal.getDimension()));
+				throw new CommandRuntimeException(
+						new TranslatableComponent("commands.errors.missing_dimension", portal.getDimension()));
 
 			PortalRegistry.deactivatePortal(source.getServer().getLevel(dimType), portalPos);
 			SendTranslatedMessage(source, "commands.sportals.deactivate.success", portalPos.getX(), portalPos.getY(),
@@ -352,27 +352,27 @@ public class CommandPortals {
 		return 1;
 	}
 
-	private static int power(CommandSource source, PowerMode mode, int amount, BlockPos pos,
-			RegistryKey<World> dimension) {
+	private static int power(CommandSourceStack source, PowerMode mode, int amount, BlockPos pos,
+			ResourceKey<Level> dimension) {
 		if (dimension == null) {
 			// Get the dimension the command sender is currently in.
 			try {
-				ServerPlayerEntity player = source.getPlayerOrException();
+				ServerPlayer player = source.getPlayerOrException();
 				dimension = player.level.dimension();
 			} catch (CommandSyntaxException ex) {
-				throw new CommandException(new TranslationTextComponent("commands.errors.unknown_sender_dimension"));
+				throw new CommandRuntimeException(new TranslatableComponent("commands.errors.unknown_sender_dimension"));
 			}
 		}
 
 		List<Portal> portals = PortalRegistry.getPortalsAt(pos, dimension);
 
 		if (portals == null || portals.size() == 0) {
-			throw new CommandException(
-					new TranslationTextComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(),
+			throw new CommandRuntimeException(
+					new TranslatableComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(),
 							pos.getY(), pos.getZ(), dimension.getRegistryName()));
 		} else if (portals.size() > 1) {
-			throw new CommandException(
-					new TranslationTextComponent("commands.errors.multiple_portals_found_at_pos_in_dimension",
+			throw new CommandRuntimeException(
+					new TranslatableComponent("commands.errors.multiple_portals_found_at_pos_in_dimension",
 							pos.getX(), pos.getY(), pos.getZ(), dimension.getRegistryName()));
 		}
 
@@ -411,7 +411,7 @@ public class CommandPortals {
 		return 1;
 	}
 
-	private static int clear(CommandSource source) {
+	private static int clear(CommandSourceStack source) {
 		// sportals clear confirmed
 		PortalRegistry.clear();
 		SendTranslatedMessage(source, "commands.sportals.clear.success");
@@ -419,7 +419,7 @@ public class CommandPortals {
 		return 1;
 	}
 
-	private static void SendTranslatedMessage(CommandSource source, String message, Object... args) {
-		source.sendSuccess(new TranslationTextComponent(message, args), true);
+	private static void SendTranslatedMessage(CommandSourceStack source, String message, Object... args) {
+		source.sendSuccess(new TranslatableComponent(message, args), true);
 	}
 }

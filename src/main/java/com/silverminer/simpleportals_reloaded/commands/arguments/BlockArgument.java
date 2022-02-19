@@ -7,11 +7,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.block.Block;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Arrays;
@@ -21,7 +21,7 @@ import java.util.function.Function;
 
 public class BlockArgument implements ArgumentType<Block>
 {
-	private static final DynamicCommandExceptionType INVALID_ADDRESS = new DynamicCommandExceptionType((args) -> new TranslationTextComponent("commands.errors.block_argument", args));
+	private static final DynamicCommandExceptionType INVALID_ADDRESS = new DynamicCommandExceptionType((args) -> new TranslatableComponent("commands.errors.block_argument", args));
 	private static final Collection<String> EXAMPLES = Arrays.asList(
 		"minecraft:dirt",
 		"minecraft:iron_block",
@@ -34,7 +34,7 @@ public class BlockArgument implements ArgumentType<Block>
 		return new BlockArgument();
 	}
 
-	public static Block getBlock(CommandContext<CommandSource> context, String name)
+	public static Block getBlock(CommandContext<CommandSourceStack> context, String name)
 	{
 		return context.getArgument(name, Block.class);
 	}
@@ -42,7 +42,7 @@ public class BlockArgument implements ArgumentType<Block>
 	@Override
 	public Block parse(StringReader reader) throws CommandSyntaxException
 	{
-		suggestionFuture = (builder) -> ISuggestionProvider.suggestResource(ForgeRegistries.BLOCKS.getKeys(), builder);
+		suggestionFuture = (builder) -> SharedSuggestionProvider.suggestResource(ForgeRegistries.BLOCKS.getKeys(), builder);
 
 		int i = reader.getCursor();
 		ResourceLocation blockResourceLocation = ResourceLocation.read(reader);
