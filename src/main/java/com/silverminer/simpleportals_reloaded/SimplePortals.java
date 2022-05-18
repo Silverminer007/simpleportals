@@ -1,5 +1,6 @@
 package com.silverminer.simpleportals_reloaded;
 
+import com.mojang.logging.LogUtils;
 import com.silverminer.simpleportals_reloaded.blocks.BlockPortal;
 import com.silverminer.simpleportals_reloaded.blocks.BlockPortalFrame;
 import com.silverminer.simpleportals_reloaded.blocks.BlockPowerGauge;
@@ -25,9 +26,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -62,7 +62,7 @@ public class SimplePortals {
 	public static final String SIMPLE_MODS_ID = "simplemods";
 
 	// logger
-	public static final Logger log = LogManager.getLogger(MOD_ID);
+	public static final Logger log = LogUtils.getLogger();
 
 	public static LinkedBlockingQueue<TeleportTask> TELEPORT_QUEUE = new LinkedBlockingQueue<>();
 

@@ -10,22 +10,25 @@ import com.silverminer.simpleportals_reloaded.configuration.Config;
 import com.silverminer.simpleportals_reloaded.registration.Address;
 import com.silverminer.simpleportals_reloaded.registration.Portal;
 import com.silverminer.simpleportals_reloaded.registration.PortalRegistry;
-
 import net.minecraft.commands.CommandRuntimeException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.commands.arguments.DimensionArgument;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.Item;
-import net.minecraft.tags.Tag;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.tags.ITag;
+import net.minecraftforge.registries.tags.ITagManager;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CommandPortals {
@@ -185,26 +188,25 @@ public class CommandPortals {
 													DimensionArgument.getDimension(context, "dimension").dimension());
 										}))))
 						.then(Commands.literal("items").executes(context -> {
-							Tag<Item> powerTag = ItemTags.getAllTags().getTag(Config.powerSource);
+							ITagManager<Item> tagManager = ForgeRegistries.ITEMS.tags();
+							ITag<Item> powerTag = tagManager == null ? null : tagManager.getTag(Config.getPowerSourceTag());
 
-							if (powerTag == null) {
+							if (powerTag == null || powerTag.isEmpty()) {
 								SendTranslatedMessage(context.getSource(), "commands.errors.no_power_items",
 										Config.powerSource);
 								return 1;
 							}
 
-							Collection<Item> itemsWithPowerTag = powerTag.getValues();
-
-							if (itemsWithPowerTag.size() == 0) {
+							if (powerTag.size() == 0) {
 								SendTranslatedMessage(context.getSource(), "commands.errors.no_power_items",
 										Config.powerSource);
 								return 1;
 							}
 
 							SendTranslatedMessage(context.getSource(), "commands.sportals.power.items.success",
-									itemsWithPowerTag.size());
+									powerTag.size());
 
-							for (Item powerSource : itemsWithPowerTag) {
+							for (Item powerSource : powerTag) {
 								SendTranslatedMessage(context.getSource(), powerSource.getDescriptionId());
 							}
 
@@ -214,43 +216,32 @@ public class CommandPortals {
 					SendTranslatedMessage(context.getSource(), "commands.sportals.clear.info");
 					return 1;
 				}).then(Commands.literal("confirmed") // sportals clear confirmed
-						.executes(context -> {
-							return clear(context.getSource());
-						}))));
+						.executes(context -> clear(context.getSource())))));
 	}
 
 	private static int list(CommandSourceStack source, ListMode mode, Address address, ResourceKey<Level> dimension) {
 		List<Portal> portals;
 
 		switch (mode) {
-		case All:
-			// sportals list all
-			ImmutableListMultimap<Address, Portal> addresses = PortalRegistry.getAddresses();
-
-			Set<Address> uniqueAddresses = new HashSet<>(addresses.keys());
-			List<Portal> portalsForAddress;
-			portals = new ArrayList<>();
-
-			for (Address addr : uniqueAddresses) {
-				portalsForAddress = addresses.get(addr);
-				portals.addAll(portalsForAddress);
+			case All -> {
+				// sportals list all
+				ImmutableListMultimap<Address, Portal> addresses = PortalRegistry.getAddresses();
+				Set<Address> uniqueAddresses = new HashSet<>(addresses.keys());
+				List<Portal> portalsForAddress;
+				portals = new ArrayList<>();
+				for (Address addr : uniqueAddresses) {
+					portalsForAddress = addresses.get(addr);
+					portals.addAll(portalsForAddress);
+				}
 			}
-
-			break;
-
-		case Address:
-			// sportals list <addressBlockId> <addressBlockId> <addressBlockId>
-			// <addressBlockId>
-			portals = PortalRegistry.getPortalsWithAddress(address);
-			break;
-
-		case Dimension:
-			// sportals list <dimension>
-			portals = PortalRegistry.getPortalsInDimension(dimension);
-			break;
-
-		default:
-			portals = new ArrayList<>();
+			case Address ->
+					// sportals list <addressBlockId> <addressBlockId> <addressBlockId>
+					// <addressBlockId>
+					portals = PortalRegistry.getPortalsWithAddress(address);
+			case Dimension ->
+					// sportals list <dimension>
+					portals = PortalRegistry.getPortalsInDimension(dimension);
+			default -> portals = new ArrayList<>();
 		}
 
 		SimplePortals.log.info("Registered portals");
@@ -287,52 +278,46 @@ public class CommandPortals {
 		List<Portal> portals = null;
 
 		switch (mode) {
-		case Address:
-			// sportals deactivate <addressBlockId> <addressBlockId> <addressBlockId>
-			// <addressBlockId> [dimension]
-			portals = PortalRegistry.getPortalsWithAddress(address);
+			case Address -> {
+				// sportals deactivate <addressBlockId> <addressBlockId> <addressBlockId>
+				// <addressBlockId> [dimension]
+				portals = PortalRegistry.getPortalsWithAddress(address);
+				if (portals == null || portals.size() == 0) {
+					if (dimension != null) {
+						SendTranslatedMessage(source, "commands.errors.portal_not_found_with_address_in_dimension", address,
+								dimension.getRegistryName());
+					} else {
+						SendTranslatedMessage(source, "commands.errors.portal_not_found_with_address", address);
+					}
 
-			if (portals == null || portals.size() == 0) {
+					return 0;
+				}
 				if (dimension != null) {
-					SendTranslatedMessage(source, "commands.errors.portal_not_found_with_address_in_dimension", address,
-							dimension.getRegistryName());
-				} else {
-					SendTranslatedMessage(source, "commands.errors.portal_not_found_with_address", address);
+					// filter out all portals that are not in the specified dimension
+					final ResourceKey<Level> dimensionCopy = dimension; // This is necessary because Java wants closures in
+					// lambda expressions to be effectively final.
+					portals = portals.stream().filter((portal -> portal.getDimension() == dimensionCopy))
+							.collect(Collectors.toList());
 				}
-
-				return 0;
 			}
-
-			if (dimension != null) {
-				// filter out all portals that are not in the specified dimension
-				final ResourceKey<Level> dimensionCopy = dimension; // This is necessary because Java wants closures in
-																	// lambda expressions to be effectively final.
-				portals = portals.stream().filter((portal -> portal.getDimension() == dimensionCopy))
-						.collect(Collectors.toList());
-			}
-
-			break;
-
-		case Position:
-			// sportals deactivate <x> <y> <z> [dimension]
-			if (dimension == null) {
-				try {
-					// Get the dimension the command sender is currently in.
-					ServerPlayer player = source.getPlayerOrException();
-					dimension = player.level.dimension();
-				} catch (CommandSyntaxException ex) {
+			case Position -> {
+				// sportals deactivate <x> <y> <z> [dimension]
+				if (dimension == null) {
+					try {
+						// Get the dimension the command sender is currently in.
+						ServerPlayer player = source.getPlayerOrException();
+						dimension = player.level.dimension();
+					} catch (CommandSyntaxException ex) {
+						throw new CommandRuntimeException(
+								new TranslatableComponent("commands.errors.unknown_sender_dimension"));
+					}
+				}
+				portals = PortalRegistry.getPortalsAt(pos, dimension);
+				if (portals == null || portals.size() == 0)
 					throw new CommandRuntimeException(
-							new TranslatableComponent("commands.errors.unknown_sender_dimension"));
-				}
+							new TranslatableComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(),
+									pos.getY(), pos.getZ(), dimension.getRegistryName()));
 			}
-
-			portals = PortalRegistry.getPortalsAt(pos, dimension);
-			if (portals == null || portals.size() == 0)
-				throw new CommandRuntimeException(
-						new TranslatableComponent("commands.errors.portal_not_found_at_pos_in_dimension", pos.getX(),
-								pos.getY(), pos.getZ(), dimension.getRegistryName()));
-
-			break;
 		}
 
 		BlockPos portalPos;

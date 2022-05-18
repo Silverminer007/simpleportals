@@ -4,7 +4,10 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.silverminer.simpleportals_reloaded.common.Utils;
 
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.nio.file.Path;
@@ -46,6 +49,9 @@ public final class Config
 	public static ForgeConfigSpec.BooleanValue teleportationSoundEnabled;
 	public static ForgeConfigSpec.IntValue requiredPermissionLevelToActivate;
 	public static ResourceLocation powerSource;
+	public static TagKey<Item> getPowerSourceTag(){
+		return TagKey.create(Registry.ITEM_REGISTRY, powerSource);
+	}
 
 	private static ForgeConfigSpec.ConfigValue<String> powerSourceString;
 

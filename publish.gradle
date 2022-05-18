@@ -19,8 +19,7 @@ curseforge {
         changelog = changelogFile.substring(0, changelogFile.contains('===') ? changelogFile.indexOf("===") : changelogFile.length())
         changelogType = 'markdown'
         releaseType = 'release'
-        addGameVersion '1.18'
-        addGameVersion '1.18.1'
+        addGameVersion '1.18.2'
         addGameVersion 'Forge'
     }
     options {
