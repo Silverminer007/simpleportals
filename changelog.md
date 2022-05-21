@@ -1,4 +1,4 @@
-### 4.0.0-rc1
+### 4.0.0-rc2
 - Don't export mcjty.theoneprobe.api (Fix #1)
 
 ===========
