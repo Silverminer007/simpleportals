@@ -12,7 +12,6 @@ import com.silverminer.simpleportals_reloaded.configuration.Config;
 import com.silverminer.simpleportals_reloaded.items.ItemPortalActivator;
 import com.silverminer.simpleportals_reloaded.items.ItemPortalFrame;
 import com.silverminer.simpleportals_reloaded.items.ItemPowerGauge;
-import com.silverminer.simpleportals_reloaded.theoneprobe.TheOneProbeCompat;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.server.MinecraftServer;
@@ -28,11 +27,8 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.WorldEvent.Load;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 
 /**
  * Hosts Forge event handlers on both the server and client side.
@@ -40,16 +36,6 @@ import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 public final class EventHub {
 
 	public static class ModEventBus {
-
-		@SubscribeEvent
-		public static void onInteropSetup(InterModEnqueueEvent event) {
-			if (ModList.get().isLoaded("theoneprobe")) {
-				SimplePortals.log.debug("Sending compatibility request to TheOneProbe.");
-				InterModComms.sendTo("theoneprobe", "getTheOneProbe", TheOneProbeCompat::new);
-			} else {
-				SimplePortals.log.debug("TheOneProbe not found. Skipping compatibility request.");
-			}
-		}
 
 		@SubscribeEvent
 		public static void onConfigLoaded(ModConfigEvent.Loading event) {
