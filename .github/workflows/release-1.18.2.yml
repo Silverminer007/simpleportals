@@ -48,7 +48,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: '1.18.1'
+          branch: '1.18.2'
           tags: true
       - name: read changelog file
         uses: juliangruber/read-file-action@v1
